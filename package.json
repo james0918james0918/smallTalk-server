@@ -1,0 +1,29 @@
+{
+  "name": "smalltalk-server",
+  "version": "1.0.0",
+  "description": "Manage Team Like a Country",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel src -d dist",
+    "start": "node dist/server.js",
+    "clean": "rimraf ./dist",
+    "lint": "eslint"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^5.8.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "rimraf": "^2.6.2"
+  },
+  "dependencies": {
+    "bcrypt": "^3.0.2",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "jsonwebtoken": "^8.3.0",
+    "mongoose": "^5.3.9"
+  }
+}
