@@ -20,10 +20,12 @@
     "rimraf": "^2.6.2"
   },
   "dependencies": {
+    "aws-sdk": "^2.395.0",
     "bcrypt": "^3.0.2",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "jsonwebtoken": "^8.3.0",
-    "mongoose": "^5.3.9"
+    "mongoose": "^5.3.9",
+    "uuid": "^3.3.2"
   }
 }
