@@ -10,7 +10,7 @@ export const authenticationController = (router) => {
 
         User.findOne({ username, password }).then((user) => {
             if (!user) {
-                res.json({ success: false, message: "Authentication failed. User not found" });
+                res.status(401).send('Invalid Credentials');
             } else {
                 const payload = {
                     name: user.name
@@ -21,15 +21,14 @@ export const authenticationController = (router) => {
                     expiresIn: 60 * 60 * 24
                 });
 
-                res.json({
-                    success: true,
+                res.status(200).send({
                     message: "Authentication Succeeded.",
-                    token
+                    user: { token }
                 });
             }
         })
         .catch(() => {
-            res.json({ success: false, message: "Authentication failed. User not found" });
+            res.status(500).send('System Error. Please try again later!');
         });
     });
 
