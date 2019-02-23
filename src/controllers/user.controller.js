@@ -39,7 +39,7 @@ export const userController = (router) => {
             });
     });
 
-    router.post("/verify",(req,res)=>{
+    router.post('/verification',(req,res)=>{
         let ses = new aws.SES({ apiVersion: 'latest' });
         let token = uuidv4();
         let param={
@@ -63,39 +63,47 @@ export const userController = (router) => {
             }]
         }
 
-        const verification = new VerificationEmail({ 
+        const verification = new VerificationEmail({
+            username: req.body.username,
+            password: req.body.password,
             uuid: token,
             email: req.body.email,
             expireAt: new Date(Date.now() + 60 * 60 * 24 * 1000) // expire at one day
         });
         verification.save()
         .then(() => {
-            ses.sendEmail(param,function(err,data){
-                if(err) res.status(500).send(`mail sent fails with error: ${e}`);
+            res.status(200).send('Email is sent, please check your mailbox');
+            /*ses.sendEmail(param, function(err, data) {
+                if(err) res.status(500).send(`mail sent fails with error: ${err}`);
                 else res.status(200).send('Email is sent, please check your mailbox');
-            });
+            });*/
         })
         .catch(e => res.status(500).send(`error is ${e}`));
         // to-do
         // should pop up a btn for resending the mail
 })
 
-    router.post('/verify/:token', (req,res) => {
+    router.post('/verification/:token', (req, res, next) => {
         const token = VerificationEmail.findOne({ 
             uuid: req.params.token, 
             expireAt: { $gt: new Date(Date.now()) }
-        }, function(err,result) {
+        }, function(err, result) {
             if (err) res.status(500).send('error during querying the uuid token');
             else {
                 if (!result) res.status(500).send('no correct uuid token is found');
-                else { // delete the token
-                    VerificationEmail.deleteOne(result, function(err,result) {
+                else {
+                    // attach username and password to body to pass to middleware for login
+                    req.body.username = result.username;
+                    req.body.password = result.password;
+                    // delete the token
+                    VerificationEmail.deleteOne(result, function(err, result) {
                         if(err) console.log(err);
                         // return object of deletion:
                         // { n: 1, ok: true, deletedCount: 1}
                     });
-                    res.status(200).send(); 
-                }// confirm
+                    // res.status(200).send();
+                    next();
+                }
             }
         });
     });
