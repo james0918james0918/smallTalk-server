@@ -8,7 +8,7 @@ import { headerProcessor } from "./middlewares/header-processor";
 
 import { userController } from "./controllers/user.controller";
 import { authenticationController } from "./controllers/authentication.controller";
-
+import { teamController } from './controllers/team.controller';
 // Create connection to database
 connectToDatabase();
 
@@ -24,6 +24,7 @@ app.use((req, res, next) => { headerProcessor(req, res, next); });
 
 app.use("/authentication", authenticationController(router));
 app.use("/users", userController(router));
+app.use('/teams', teamController(router));
 
 // Check for token
 app.use(((req, res, next) => {

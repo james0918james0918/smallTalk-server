@@ -1,7 +1,8 @@
 import { Types } from "mongoose";
 import { User } from "../models/user";
-import aws from "../config/awsConfig";
-import uuidv5 from "uuid";
+import { VerificationEmail } from '../models/verification';
+import aws from "../config/aws-config";
+import uuidv4 from 'uuid';
 
 export const userController = (router) => {
     router.get("/", (req, res) => {
@@ -33,24 +34,23 @@ export const userController = (router) => {
                 res.status(200).send("Create user successfully!");
             })
             .catch((error) => {
+                console.log("error right here" + error);
                 res.status(500).send(error);
             });
     });
 
     router.post("/verify",(req,res)=>{
         let ses = new aws.SES({ apiVersion: 'latest' });
-        //let token=uuidv5("hello smallTalk","my namespace!!!!");
+        let token = uuidv4();
         let param={
             Source: "j2081499@gmail.com",
             Destination:{
-                ToAddresses: ["f74056205@gs.ncku.edu.tw"]
+                ToAddresses: [req.body.email]
             },
             Message:{
                 Body:{
                     Text:{
-                        // what to do from here
-                        // go to front-end redux route
-                        Data: `plz go to this url to verify ur account:`,
+                        Data: `plz go to this url to verify ur account: localhost:8080/verification/${token}`,
                     }
                 },
                 Subject:{
@@ -62,11 +62,43 @@ export const userController = (router) => {
                 Value:"registration"
             }]
         }
-        ses.sendEmail(param,function(err,data){
-            if(err) console.log(err);
-            else console.log(data);
+
+        const verification = new VerificationEmail({ 
+            uuid: token,
+            email: req.body.email,
+            expireAt: new Date(Date.now() + 60 * 60 * 24 * 1000) // expire at one day
+        });
+        verification.save()
+        .then(() => {
+            ses.sendEmail(param,function(err,data){
+                if(err) res.status(500).send(`mail sent fails with error: ${e}`);
+                else res.status(200).send('Email is sent, please check your mailbox');
+            });
         })
-    })
+        .catch(e => res.status(500).send(`error is ${e}`));
+        // to-do
+        // should pop up a btn for resending the mail
+})
+
+    router.post('/verify/:token', (req,res) => {
+        const token = VerificationEmail.findOne({ 
+            uuid: req.params.token, 
+            expireAt: { $gt: new Date(Date.now()) }
+        }, function(err,result) {
+            if (err) res.status(500).send('error during querying the uuid token');
+            else {
+                if (!result) res.status(500).send('no correct uuid token is found');
+                else { // delete the token
+                    VerificationEmail.deleteOne(result, function(err,result) {
+                        if(err) console.log(err);
+                        // return object of deletion:
+                        // { n: 1, ok: true, deletedCount: 1}
+                    });
+                    res.status(200).send(); 
+                }// confirm
+            }
+        });
+    });
 
     router.patch("/update/:id", (req, res) => {
         return null;
