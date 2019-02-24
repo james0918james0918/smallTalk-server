@@ -6,9 +6,9 @@ import uuidv4 from 'uuid/v4';
 import { Team } from '../models/team';
 
 const TeamController = express.Router();
-// const upload = multer({
-//   dest: '/public '
-// });
+const upload = multer({
+  dest: path.join(__dirname, '../../public/team-icons')
+});
 
 TeamController.get('/', (req, res) => {
   Team.find({}).then((userList) => {
@@ -42,6 +42,7 @@ TeamController.put('/:id', (req, res) => {
 TeamController.delete('/:id', (req, res) => {
   Team.findById(req.params.id, async (error, team) => {
     if (team) {
+      console.log(typeof team);
       await team.remove();
       res.status(200).send();
     } else {
@@ -54,24 +55,29 @@ TeamController.delete('/:id/users/:userId', (req, res) => {
 
 });
 
-// TeamController.post('/team-icons', upload.single('teamIcon'), (req, res) => {
-//   const imageId = uuidv4();
-//   const filePath = req.file.path;
-//   const targetPath = path.join(__dirname, '../uploads/team-icons/' + imageId.toString());
+TeamController.post('/team-icons', upload.single('teamIcon'), (req, res) => {
+  const imageId = uuidv4();
+  const filePath = req.file.path;
+  const targetPath = path.join(__dirname, '../../public/team-icons/', `${imageId.toString()}.png`);
 
-//   if (path.extname(req.file.originalname).toLowerCase() === '.png') {
-//     fs.rename(filePath, targetPath, (err) => {
-//       if (err) res.status(500).send(err);
-
-//       res.status(200).send('Team Icon Uploaded!');
-//     });
-//   } else {
-//     fs.unlink(filePath, (err) => {
-//       if (err) res.status(500).send(err);
-
-//       res.status(403).send('Only .png files are allowed!');
-//     });
-//   }
-// });
+  if (path.extname(req.file.originalname).toLowerCase() === '.png') {
+    fs.rename(filePath, targetPath, (err) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send(err);
+      } else {
+        res.status(200).send('Team Icon Uploaded!');
+      }
+    });
+  } else {
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.status(403).send('Only .png files are allowed!');
+      }
+    });
+  }
+});
 
 export default TeamController;
