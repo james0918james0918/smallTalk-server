@@ -35,14 +35,19 @@ TeamController.post('/', (req, res) => {
   });
 });
 
-TeamController.put('/:id', (req, res) => {
-  Team.findOneAndReplace({ _id: id }, null);
+TeamController.put('/:id', async (req, res, next) => {
+  try {
+    await Team.replaceOne({ _id: req.params.id }, req.body);
+    res.status(200).send('Update team successfully!');
+  } catch (e) {
+    res.status(500).json(e);
+    next();
+  }
 });
 
 TeamController.delete('/:id', (req, res) => {
   Team.findById(req.params.id, async (error, team) => {
     if (team) {
-      console.log(typeof team);
       await team.remove();
       res.status(200).send();
     } else {
@@ -63,7 +68,6 @@ TeamController.post('/team-icons', upload.single('teamIcon'), (req, res) => {
   if (path.extname(req.file.originalname).toLowerCase() === '.png') {
     fs.rename(filePath, targetPath, (err) => {
       if (err) {
-        console.log(err);
         res.status(500).send(err);
       } else {
         res.status(200).send('Team Icon Uploaded!');

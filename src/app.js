@@ -42,7 +42,7 @@ app.use('/users', UserController);
 app.use(jwtValidator);
 
 // Endpoint for uploaded pictures
-app.use('/public', express.static(path.join(__dirname, '../../public')));
+app.use('/public', express.static(path.join(__dirname, '../public')));
 app.use('/teams', TeamController);
 
 app.use(globalErrorHandler);
