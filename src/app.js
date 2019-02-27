@@ -1,49 +1,50 @@
-import bodyParser from "body-parser";
-import express from "express";
-import jwt from "jsonwebtoken";
+import bodyParser from 'body-parser';
+import express from 'express';
+import timeout from 'connect-timeout';
+import path from 'path';
 
-import { connectToDatabase } from "./config/database";
-import { appVariables } from "./config/app-variables";
-import { headerProcessor } from "./middlewares/header-processor";
+import { connectToDatabase } from './config/database';
+import { appVariables } from './config/app-variables';
+import {
+  globalErrorHandler,
+  headerProcessor,
+  jwtValidator
+} from './middlewares/index';
 
-import { userController } from "./controllers/user.controller";
-import { authenticationController } from "./controllers/authentication.controller";
+import {
+  AuthenticationController,
+  UserController,
+  TeamController
+} from './controllers/index';
 
 // Create connection to database
 connectToDatabase();
 
 // Create Express server
 const app = express();
-const router = express.Router();
 
-app.set("port", process.env.PORT || appVariables.applicationPort);
+app.set('port', process.env.PORT || appVariables.applicationPort);
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
-app.use((req, res, next) => { headerProcessor(req, res, next); });
+// app.use((req, res, next) => {
+//   headerProcessor(req, res, next);
+// });
+app.use(headerProcessor);
 
-app.use("/authentication", authenticationController(router));
-app.use("/users", userController(router));
+app.use(timeout(appVariables.timeoutLimit));
+app.use('/authentication', AuthenticationController);
+app.use('/users', UserController);
 
 // Check for token
-app.use(((req, res, next) => {
-    const token = req.body.token || req.query.token || req.headers["x-access-token"];
+app.use(jwtValidator);
 
-    if (token) {
-        jwt.verify(token, appVariables.secret, (error, decoded) => {
-            if (error) {
-                return res.json({ success: false, message: "Failed to authenticate token" });
-            }
+// Endpoint for uploaded pictures
+app.use('/public', express.static(path.join(__dirname, '../public')));
+app.use('/teams', TeamController);
 
-            req.decoded = decoded;
-            next();
-        });
-    } else {
-        return res.status(403).send({
-            success: false,
-            message: "No token provided."
-        });
-    }
-}));
+app.use(globalErrorHandler);
 
 export default app;
