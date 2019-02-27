@@ -1,45 +1,47 @@
-import { Types } from "mongoose";
-import { User } from "../models/user";
+import express from 'express';
+import bcrypt from 'bcrypt';
+import { Types } from 'mongoose';
 import { VerificationEmail } from '../models/verification';
-import aws from "../config/aws-config";
+import { User } from '../models/user';
+import aws from '../config/awsConfig';
 import uuidv4 from 'uuid';
 
-export const userController = (router) => {
-    router.get("/", (req, res) => {
-        User.find({}).then((userList) => {
-            res.status(200).json(userList);
-        })
-        .catch((error) => {
-            res.status(500).send(error);
-        });
+const UserController = express.Router();
+const saltRounds = 10;
+
+UserController.get('/', (req, res) => {
+  User.find({}).then((userList) => {
+    res.status(200).json(userList);
+  }).catch((error) => {
+    res.status(500).send(error);
+  });
+});
+
+UserController.get('/:id', (req, res) => {
+  if (!req.params.id) {
+    throw new Error('No Id');
+  }
+
+  User.findById(req.params.id).then((user) => {
+    res.status(200).json(user);
+  }).catch((error) => {
+    res.status(404).send(error);
+  });
+});
+
+UserController.post('/', async (req, res) => {
+  bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
+    const { password, ...rest } = req.body;
+    const user = new User({ password: hash, ...rest });
+    user.save().then(() => {
+      res.status(200).send('Create user successfully!');
+    }).catch((error) => {
+      res.status(500).send(error);
     });
+  });
+});
 
-    router.get("/:id", (req, res) => {
-        if (!req.params.id) {
-            throw new Error("No Id");
-        }
-
-        User.findById(req.params.id).then((user) => {
-            res.status(200).json(user);
-        })
-        .catch((error) => {
-            res.status(404).send(error);
-        });
-    });
-
-    router.post("/create", (req, res) => {
-            const user = new User(req.body);
-            user._id = new Types.ObjectId();
-            user.save().then(() => {
-                res.status(200).send("Create user successfully!");
-            })
-            .catch((error) => {
-                console.log("error right here" + error);
-                res.status(500).send(error);
-            });
-    });
-
-    router.post('/verification',(req,res)=>{
+UserController.post('/verification',(req,res)=>{
         let ses = new aws.SES({ apiVersion: 'latest' });
         let token = uuidv4();
         let param={
@@ -83,7 +85,7 @@ export const userController = (router) => {
         // should pop up a btn for resending the mail
 })
 
-    router.post('/verification/:token', (req, res, next) => {
+UserController.post('/verification/:token', (req, res, next) => {
         const token = VerificationEmail.findOne({ 
             uuid: req.params.token, 
             expireAt: { $gt: new Date(Date.now()) }
@@ -108,15 +110,25 @@ export const userController = (router) => {
         });
     });
 
-    router.patch("/update/:id", (req, res) => {
-        return null;
-    });
+  ses.sendEmail(param, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(data);
+    }
+  });
+});
 
-    router.delete("/delete/:id", () => {
-        return null;
-    });
+UserController.get('/:id/teams', (req, res) => {
 
-    
+});
 
-    return router;
-};
+UserController.patch('/:id', () => {
+  return null;
+});
+
+UserController.delete('/:id', () => {
+  return null;
+});
+
+export default UserController;

@@ -1,13 +1,11 @@
 {
-    "extends": "airbnb-base",
-    "rules": {
-        "comma-dangle":"off",
-        "consistent-return": "off",
-        "import/prefer-default-export": "off",
-        "indent": "off",
-        "no-console": "off",
-        "no-underscore-dangle": "off",
-        "prefer-destructuring": "off",
-        "quotes": "off"
-    }
+  "extends": "airbnb-base",
+  "rules": {
+    "comma-dangle": "off",
+    "consistent-return": "off",
+    "import/prefer-default-export": "off",
+    "no-console": "off",
+    "no-underscore-dangle": "off",
+    "prefer-destructuring": "off"
+  }
 }
