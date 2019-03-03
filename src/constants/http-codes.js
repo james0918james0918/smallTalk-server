@@ -7,3 +7,7 @@ export const HTTP_CODES = Object.freeze({
   INTERNAL_SERVER_ERROR: 500,
   GATEWAY_TIMEOUT: 504
 });
+
+export const HTTP_RESPONSE_MSG = Object.freeze({
+  UNAUTHORIZED: 'Invalid credtial'
+});

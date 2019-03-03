@@ -1,4 +1,6 @@
-import mongoose from 'mongoose';
+import mongoose from '../config/mongoose-config';
+import MemberSchema from './member';
+
 
 const Schema = mongoose.Schema;
 
@@ -7,11 +9,9 @@ export const TeamSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String },
   type: { type: String },
-  members: [{
-    userId: Schema.Types.ObjectId,
-    role: String
-  }],
-  iconId: String
+  members: [MemberSchema],
+  logoId: String,
+  owner: { type: String, required: true },
 });
 
 // Delete memberships in users before deleting teams

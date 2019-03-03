@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-import jwt from "jsonwebtoken";
-import { appVariables } from "../config/app-variables";
-import { User } from "../models/user";
-
-export const authenticationController = (router) => {
-    router.post('/login', (req, res) => {
-        const username = req.body.username;
-        const password = req.body.password;
-=======
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
@@ -19,7 +9,6 @@ const AuthenticationController = express.Router();
 AuthenticationController.post('/login', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
->>>>>>> fcc2aa7a93feafbb771776807ee73766c9ab7b00
 
   User.findOne({
     username
@@ -31,7 +20,8 @@ AuthenticationController.post('/login', (req, res) => {
 
       if (result) {
         const payload = {
-          name: user.name
+          name: user.name,
+          username: user.username
         };
 
         // Sign the token with secret
@@ -46,7 +36,7 @@ AuthenticationController.post('/login', (req, res) => {
           }
         });
       } else {
-        res.status(401).send('Invalid Credentials');
+        res.status(401).send('Invalid Credentials, wrong password');
       }
     }
   }).catch(() => {
