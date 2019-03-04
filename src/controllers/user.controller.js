@@ -9,13 +9,14 @@ const UserController = express.Router();
 const saltRounds = 10;
 
 UserController.get('/', (req, res) => {
-  User.find({})
-    .then((userList) => {
-      res.status(200).json(userList);
-    })
-    .catch((error) => {
-      res.status(500).send(error);
-    });
+  // User.find({ username: req.body.usernameQuery })
+  //   .then((userList) => {
+  //     res.status(200).json(userList);
+  //   })
+  //   .catch((error) => {
+  //     res.status(500).send(error);
+  //   });
+  res.status(200).send(req.decoded.username);
 });
 
 UserController.post('/', async (req, res) => {

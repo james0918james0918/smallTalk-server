@@ -35,7 +35,6 @@ app.use(bodyParser.urlencoded({
 
 app.use(timeout(appVariables.timeoutLimit));
 app.use('/authentication', AuthenticationController);
-app.use('/users', UserController);
 
 // Endpoint for uploaded pictures
 // must before jwt token
@@ -45,8 +44,8 @@ app.use('/public', express.static(path.join(__dirname, '../public')));
 // Check for token
 app.use(jwtValidator);
 // Check if query string and username are matched
-// app.use(userChecking);
 app.use('*', userChecking);
+app.use('/users', UserController);
 app.use('/teams', TeamController);
 
 app.use(globalErrorHandler);
