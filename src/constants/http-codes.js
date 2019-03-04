@@ -9,5 +9,5 @@ export const HTTP_CODES = Object.freeze({
 });
 
 export const HTTP_RESPONSE_MSG = Object.freeze({
-  UNAUTHORIZED: 'Invalid credtial'
+  UNAUTHORIZED: 'Invalid credential'
 });

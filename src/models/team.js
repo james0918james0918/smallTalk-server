@@ -1,8 +1,13 @@
 import mongoose from '../config/mongoose-config';
-import MemberSchema from './member';
 
 
 const Schema = mongoose.Schema;
+
+
+const MemberSchema = new Schema({
+  userId: Schema.Types.ObjectId,
+  role: [String]
+});
 
 export const TeamSchema = new Schema({
   created: { type: Date, default: Date.now },

@@ -17,7 +17,7 @@ import {
   TeamController
 } from './controllers/index';
 import { corsOptions } from './config/cors-config';
-
+import userChecking from './middlewares/user-checking';
 // Create connection to database
 connectToDatabase();
 
@@ -44,8 +44,9 @@ app.use('/public', express.static(path.join(__dirname, '../public')));
 
 // Check for token
 app.use(jwtValidator);
-
-
+// Check if query string and username are matched
+// app.use(userChecking);
+app.use('*', userChecking);
 app.use('/teams', TeamController);
 
 app.use(globalErrorHandler);
