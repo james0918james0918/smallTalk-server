@@ -20,7 +20,8 @@ AuthenticationController.post('/login', (req, res) => {
 
       if (result) {
         const payload = {
-          name: user.name
+          name: user.name,
+          username: user.username
         };
 
         // Sign the token with secret
@@ -35,7 +36,7 @@ AuthenticationController.post('/login', (req, res) => {
           }
         });
       } else {
-        res.status(401).send('Invalid Credentials');
+        res.status(401).send('Invalid Credentials, wrong password');
       }
     }
   }).catch(() => {

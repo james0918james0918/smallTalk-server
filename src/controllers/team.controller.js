@@ -4,35 +4,52 @@ import multer from 'multer';
 import path from 'path';
 import uuidv4 from 'uuid/v4';
 import { Team } from '../models/team';
+import { User } from '../models/user';
 
 const TeamController = express.Router();
 const upload = multer({
-  dest: path.join(__dirname, '../../public/team-icons')
+  dest: path.join(__dirname, '../../public/team-logos')
 });
 
-TeamController.get('/', (req, res) => {
-  Team.find({}).then((userList) => {
-    res.status(200).json(userList);
-  }).catch((error) => {
-    res.status(500).send(error);
-  });
+
+TeamController.get('/', async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.decoded.username }).select('-_id teams').exec();
+    const teamList = await Team.find({ name: { $in: user.teams } }).select('-_id name description logoId').exec();
+    // console.log(teamList);
+    res.status(200).send(teamList);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('whoops, something is wrong with the server, please try again!');
+  }
 });
 
-TeamController.get('/:id', async (req, res) => {
-  Team.findById(req.params.id).then((team) => {
-    res.status(200).json(team);
-  }).catch((error) => {
-    res.status(500).send(error);
-  });
-});
 
-TeamController.post('/', (req, res) => {
-  const newTeam = new Team(req.body);
-  newTeam.save().then(() => {
-    res.status(200).send('Create new team successfully!');
-  }).catch((error) => {
-    res.status(500).send(error);
-  });
+TeamController.post('/', async (req, res) => {
+  try {
+    // get owner's name
+    req.body.owner = req.decoded.username;
+
+    // query exec() returns a promise
+    // $push: push the name of the newly created team into the array
+    const owner = await User.findOneAndUpdate(
+      { username: req.body.owner },
+      { $push: { teams: req.body.name } }
+    ).select('_id').exec();
+
+    // create the team
+    const team = new Team({
+      ...req.body,
+      members: [{ user: owner._id, role: ['owner'] }]
+    });
+
+    await team.save();
+
+    res.status(200).send('Create your team successfully!');
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('whoop, something is wrong with the server!');
+  }
 });
 
 TeamController.put('/:id', async (req, res, next) => {
@@ -56,21 +73,27 @@ TeamController.delete('/:id', (req, res) => {
   });
 });
 
-TeamController.delete('/:id/users/:userId', (req, res) => {
+TeamController.delete('/:id/users/:userId', () => {});
 
-});
-
-TeamController.post('/team-icons', upload.single('teamIcon'), (req, res) => {
+TeamController.post('/team-logos', upload.single('logo'), (req, res) => {
   const imageId = uuidv4();
+  if (!req.file) {
+    res.status(200).send('');
+    return; // end the flow here
+  }
   const filePath = req.file.path;
-  const targetPath = path.join(__dirname, '../../public/team-icons/', `${imageId.toString()}.png`);
+  const targetPath = path.join(
+    __dirname,
+    '../../public/team-logos/',
+    `${imageId.toString()}.png`
+  );
 
   if (path.extname(req.file.originalname).toLowerCase() === '.png') {
     fs.rename(filePath, targetPath, (err) => {
       if (err) {
         res.status(500).send(err);
       } else {
-        res.status(200).send('Team Icon Uploaded!');
+        res.status(200).send(imageId.toString());
       }
     });
   } else {

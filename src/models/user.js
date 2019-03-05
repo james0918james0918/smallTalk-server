@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from '../config/mongoose-config';
 
 const Schema = mongoose.Schema;
 
@@ -11,7 +11,7 @@ export const UserSchema = new Schema({
   password: { type: String, required: true },
   email: { type: String, required: true },
   gender: { type: String, required: true },
-  teams: [],
+  teams: [String],
   created: { type: Date, default: Date.now }
 });
 

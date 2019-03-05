@@ -1,83 +1,107 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { Types } from 'mongoose';
+import uuidv4 from 'uuid';
+import { VerificationEmail } from '../models/verification';
 import { User } from '../models/user';
-import aws from '../config/awsConfig';
+import aws from '../config/aws-config';
 
 const UserController = express.Router();
 const saltRounds = 10;
 
 UserController.get('/', (req, res) => {
-  User.find({}).then((userList) => {
-    res.status(200).json(userList);
-  }).catch((error) => {
-    res.status(500).send(error);
-  });
-});
-
-UserController.get('/:id', (req, res) => {
-  if (!req.params.id) {
-    throw new Error('No Id');
-  }
-
-  User.findById(req.params.id).then((user) => {
-    res.status(200).json(user);
-  }).catch((error) => {
-    res.status(404).send(error);
-  });
+  // User.find({ username: req.body.usernameQuery })
+  //   .then((userList) => {
+  //     res.status(200).json(userList);
+  //   })
+  //   .catch((error) => {
+  //     res.status(500).send(error);
+  //   });
+  res.status(200).send(req.decoded.username);
 });
 
 UserController.post('/', async (req, res) => {
   bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
     const { password, ...rest } = req.body;
     const user = new User({ password: hash, ...rest });
-    user.save().then(() => {
-      res.status(200).send('Create user successfully!');
-    }).catch((error) => {
-      res.status(500).send(error);
-    });
+    user
+      .save()
+      .then(() => {
+        res.status(200).send('Create user successfully!');
+      })
+      .catch((error) => {
+        res.status(500).send(error);
+      });
   });
 });
 
-UserController.post('/verify', () => {
-  const ses = new aws.SES({
-    apiVersion: 'latest'
-  });
-  // let token=uuidv5('hello smallTalk','my namespace!!!!');
-  const param = {
+UserController.post('/verification', (req, res) => {
+  let ses = new aws.SES({ apiVersion: 'latest' });
+  const token = uuidv4();
+  let param = {
     Source: 'j2081499@gmail.com',
     Destination: {
-      ToAddresses: ['f74056205@gs.ncku.edu.tw']
+      ToAddresses: [req.body.email]
     },
     Message: {
       Body: {
         Text: {
-          // what to do from here
-          // go to front-end redux route
-          Data: 'plz go to this url to verify ur account:',
+          Data: `please go to this url to verify your account: localhost:8080/verification/${token}`
         }
       },
       Subject: {
         Data: 'Welcome to smallTalk'
       }
     },
-    Tags: [{
-      Name: 'smallTalk',
-      Value: 'registration'
-    }]
+    Tags: [
+      {
+        Name: 'smallTalk',
+        Value: 'registration'
+      }
+    ]
   };
 
-  ses.sendEmail(param, (err, data) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(data);
-    }
+  const verification = new VerificationEmail({
+    username: req.body.username,
+    password: req.body.password,
+    uuid: token,
+    email: req.body.email,
+    expireAt: new Date(Date.now() + 60 * 60 * 24 * 1000) // expire at one day
   });
+  verification
+    .save()
+    .then(() => {
+      res.status(200).send('Email is sent, please check your mailbox');
+      /*  ses.sendEmail(param, function(err, data) {
+                if(err) res.status(500).send(`mail sent fails with error: ${err}`);
+                else res.status(200).send('Email is sent, please check your mailbox');
+            }); */
+    })
+    .catch(e => res.status(500).send(`error is ${e}`));
+  // to-do
+  // should pop up a btn for resending the mail
 });
 
-UserController.get('/:id/teams', (req, res) => {
-
+UserController.post('/verification/:token', (req, res) => {
+  VerificationEmail.findOne(
+    {
+      uuid: req.params.token,
+      expireAt: { $gt: new Date(Date.now()) }
+    },
+    (err, result) => {
+      if (err) res.status(500).send('error during querying the uuid token');
+      if (!result) {
+        res.status(500).send('no correct uuid token is found');
+      } else {
+        // delete the token
+        VerificationEmail.deleteOne(result, (error) => {
+          if (error) res.status(500).send('Something went wrong when deleting the token');
+          // return object of deletion:
+          // { n: 1, ok: true, deletedCount: 1}
+          res.status(200).send('validating completed');
+        });
+      }
+    }
+  );
 });
 
 UserController.patch('/:id', () => {
