@@ -9,12 +9,18 @@ const MemberSchema = new Schema({
   role: [String]
 });
 
+const TeamAnnouncementSchema = new Schema({
+  authorId: { type: String, required: true },
+  id: { type: String, requried: true }
+});
+
 export const TeamSchema = new Schema({
   created: { type: Date, default: Date.now },
   name: { type: String, required: true },
   description: { type: String },
   type: { type: String },
   members: [MemberSchema],
+  announcements: [TeamAnnouncementSchema],
   logoId: String,
   owner: { type: String, required: true },
 });

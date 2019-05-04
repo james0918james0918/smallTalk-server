@@ -15,8 +15,21 @@ const upload = multer({
 TeamController.get('/', async (req, res) => {
   try {
     const user = await User.findOne({ username: req.decoded.username }).select('-_id teams').exec();
-    const teamList = await Team.find({ name: { $in: user.teams } }).select('-_id name description logoId').exec();
-    // console.log(teamList);
+    const teamList = await Team.aggregate([
+      { $match: { name: { $in: user.teams } } },
+      {
+        $project: {
+          _id: 0,
+          id: '$_id',
+          name: 1,
+          description: 1,
+          owner: 1,
+          created: 1,
+          logoId: 1
+        }
+      }
+    ]);
+    console.log(teamList);
     res.status(200).send(teamList);
   } catch (err) {
     console.log(err);
@@ -76,6 +89,7 @@ TeamController.delete('/:id', (req, res) => {
 TeamController.delete('/:id/users/:userId', () => {});
 
 TeamController.post('/team-logos', upload.single('logo'), (req, res) => {
+  console.log(req.file);
   const imageId = uuidv4();
   if (!req.file) {
     res.status(200).send('');
