@@ -20,6 +20,7 @@ AuthenticationController.post('/login', (req, res) => {
 
       if (result) {
         const payload = {
+          id: user._id,
           name: user.name,
           username: user.username
         };
@@ -35,8 +36,9 @@ AuthenticationController.post('/login', (req, res) => {
           message: 'Authentication Succeeded.',
           id: userId,
           user: {
-            token
-          }
+            token,
+          },
+          id: user._id
         });
       } else {
         res.status(401).send('Invalid Credentials, wrong password');

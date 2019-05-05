@@ -16,6 +16,7 @@ UserController.get('/', (req, res) => {
   //   .catch((error) => {
   //     res.status(500).send(error);
   //   });
+  console.log(req.decoded.username);
   res.status(200).send(req.decoded.username);
 });
 
