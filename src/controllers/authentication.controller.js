@@ -30,8 +30,11 @@ AuthenticationController.post('/login', (req, res) => {
           expiresIn: 60 * 60 * 24
         });
 
+        const userId = user._id;
+
         res.status(200).send({
           message: 'Authentication Succeeded.',
+          id: userId,
           user: {
             token,
           },

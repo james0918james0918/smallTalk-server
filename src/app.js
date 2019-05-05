@@ -18,6 +18,7 @@ import {
   PostsController
 } from './controllers/index';
 import { corsOptions } from './config/cors-config';
+
 // Create connection to database
 connectToDatabase();
 
@@ -35,11 +36,11 @@ app.use(bodyParser.urlencoded({
 
 app.use(timeout(appVariables.timeoutLimit));
 app.use('/authentication', AuthenticationController);
+app.use('/users', UserController);
 
 // Endpoint for uploaded pictures
 // must before jwt token
 app.use('/public', express.static(path.join(__dirname, '../public')));
-
 
 // Check for token
 app.use(jwtValidator);
