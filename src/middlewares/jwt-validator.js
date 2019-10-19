@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { appVariables } from '../config/app-variables';
+import HttpError from '../http-error/http-error-class';
+import { HTTP_CODES, HTTP_RESPONSE_MSG } from '../constants/index';
 
 export function jwtValidator(req, res, next) {
   const tokenString = req.body.token || req.query.token || req.headers['x-access-token'];
@@ -9,21 +11,15 @@ export function jwtValidator(req, res, next) {
 
     jwt.verify(token, appVariables.secret, (error, decoded) => {
       if (error) {
-        return res.json({
-          success: false,
-          message: 'Failed to authenticate token'
-        });
+        next(new HttpError(HTTP_CODES.FORBIDDEN, HTTP_RESPONSE_MSG.FORBIDDEN));
+      } else {
+        req.decoded = decoded;
+        next();
       }
-
-      req.decoded = decoded;
-      next();
     });
   } else {
     // if this falls out 2xx,
     // the preflight will be considered an error
-    return res.status(403).send({
-      success: false,
-      message: 'No token provided.'
-    });
+    next(new HttpError(HTTP_CODES.UNAUTHORIZED, HTTP_RESPONSE_MSG.UNAUTHORIZED));
   }
 }
