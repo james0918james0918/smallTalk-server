@@ -32,6 +32,8 @@ AuthenticationController.post('/login', (req, res, next) => {
           expiresIn: 60 * 60 * 24
         });
 
+        const userId = user._id;
+
         res.status(200).send({
           message: HTTP_RESPONSE_MSG.SUCCESS,
           user: {
