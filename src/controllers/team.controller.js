@@ -5,6 +5,8 @@ import path from 'path';
 import uuidv4 from 'uuid/v4';
 import { Team } from '../models/team';
 import { User } from '../models/user';
+import HttpError from '../http-error/http-error-class';
+import { HTTP_CODES } from '../constants/index';
 
 const TeamController = express.Router();
 const upload = multer({
@@ -38,7 +40,7 @@ TeamController.get('/', async (req, res) => {
 });
 
 
-TeamController.post('/', async (req, res) => {
+TeamController.post('/', async (req, res, next) => {
   try {
     // get owner's name
     req.body.owner = req.decoded.username;
@@ -58,10 +60,10 @@ TeamController.post('/', async (req, res) => {
 
     await team.save();
 
-    res.status(200).send('Create your team successfully!');
+    res.sendStatus(204);
   } catch (err) {
     console.log(err);
-    res.status(500).send('whoop, something is wrong with the server!');
+    next(new HttpError(HTTP_CODES.INTERNAL_SERVER_ERROR, err.message));
   }
 });
 
@@ -69,8 +71,8 @@ TeamController.put('/:id', async (req, res, next) => {
   try {
     await Team.replaceOne({ _id: req.params.id }, req.body);
     res.status(200).send('Update team successfully!');
-  } catch (e) {
-    res.status(500).json(e);
+  } catch (err) {
+    res.status(500).json(err);
     next();
   }
 });

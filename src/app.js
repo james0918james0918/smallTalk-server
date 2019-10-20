@@ -41,9 +41,9 @@ app.use('/users', UserController);
 // must before jwt token
 app.use('/public', express.static(path.join(__dirname, '../public')));
 
-// Check for token
-app.use(jwtValidator);
+
 app.use('/users', UserController);
+app.use(jwtValidator);
 app.use('/teams', TeamController);
 app.use('/posts', PostsController);
 
