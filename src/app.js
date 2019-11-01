@@ -6,10 +6,8 @@ import cors from 'cors';
 
 import { connectToDatabase } from './config/database';
 import { appVariables } from './config/app-variables';
-import {
-  globalErrorHandler,
-  jwtValidator
-} from './middlewares/index';
+import { jwtValidator } from './middlewares/index';
+import httpErrorHandler from './http-error/http-error-handler';
 
 import {
   AuthenticationController,
@@ -17,6 +15,7 @@ import {
   TeamController,
   PostsController
 } from './controllers/index';
+
 import { corsOptions } from './config/cors-config';
 
 // Create connection to database
@@ -42,12 +41,12 @@ app.use('/users', UserController);
 // must before jwt token
 app.use('/public', express.static(path.join(__dirname, '../public')));
 
-// Check for token
-app.use(jwtValidator);
+
 app.use('/users', UserController);
+app.use(jwtValidator);
 app.use('/teams', TeamController);
 app.use('/posts', PostsController);
 
-app.use(globalErrorHandler);
+app.use(httpErrorHandler);
 
 export default app;

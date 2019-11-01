@@ -3,19 +3,13 @@ import bcrypt from 'bcrypt';
 import uuidv4 from 'uuid';
 import { VerificationEmail } from '../models/verification';
 import { User } from '../models/user';
+import { jwtValidator } from '../middlewares/jwt-validator';
 import aws from '../config/aws-config';
 
 const UserController = express.Router();
 const saltRounds = 10;
 
-UserController.get('/', (req, res) => {
-  // User.find({ username: req.body.usernameQuery })
-  //   .then((userList) => {
-  //     res.status(200).json(userList);
-  //   })
-  //   .catch((error) => {
-  //     res.status(500).send(error);
-  //   });
+UserController.get('/', jwtValidator, (req, res) => {
   console.log(req.decoded.username);
   res.status(200).send(req.decoded.username);
 });
@@ -27,10 +21,10 @@ UserController.post('/', async (req, res) => {
     user
       .save()
       .then(() => {
-        res.status(200).send('Create user successfully!');
+        res.sendStatus(204);
       })
       .catch((error) => {
-        res.status(500).send(error);
+        res.status(500).send(error.message);
       });
   });
 });
@@ -105,12 +99,12 @@ UserController.post('/verification/:token', (req, res) => {
   );
 });
 
-UserController.patch('/:id', () => {
-  return null;
-});
+// UserController.patch(jwtValidator, '/:id', () => {
+//   return null;
+// });
 
-UserController.delete('/:id', () => {
-  return null;
-});
+// UserController.delete(jwtValidator, '/:id', () => {
+//   return null;
+// });
 
 export default UserController;

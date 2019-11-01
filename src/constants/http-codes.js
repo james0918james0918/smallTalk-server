@@ -1,5 +1,6 @@
 export const HTTP_CODES = Object.freeze({
   SUCCESS: 200,
+  NO_CONTENT: 204,
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
@@ -9,5 +10,7 @@ export const HTTP_CODES = Object.freeze({
 });
 
 export const HTTP_RESPONSE_MSG = Object.freeze({
-  UNAUTHORIZED: 'Invalid credential'
+  SUCCESS: 'Confirmed request',
+  UNAUTHORIZED: 'No credential provided',
+  FORBIDDEN: 'Invalid credential',
 });
